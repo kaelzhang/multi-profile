@@ -1,14 +1,14 @@
 {
-  "name": "cortex-profile",
-  "version": "0.0.3",
-  "description": "ERROR: No README.md file found!",
-  "main": "lib/profile.js",
+  "name": "multi-profile",
+  "version": "0.1.1",
+  "description": "Profile manager for multiple users.",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/kaelzhang/cortex-profile.git"
+    "url": "git://github.com/kaelzhang/multi-profile.git"
   },
   "author": "",
   "license": "BSD",
