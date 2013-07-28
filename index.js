@@ -14,12 +14,17 @@ function profile(options) {
     return new Profile(options);
 }
 
+var SCHEMA = {
+    
+};
+
 
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
 // @param {Object} options
 // - path: {node_path} path to save the profiles
 function Profile(options) {
     this.path = this._formatPath(options.path);
+    this.schema = options.schema;
 
     this._prepare();
 }
