@@ -8,15 +8,39 @@ var event_emitter   = require('events').EventEmitter;
 var node_util       = require('util');
 var node_path       = require('path');
 var fs              = require('fs-sync');
+// var ini             = require('ini');
+
+var Attr            = require('./lib/attributes');
 
 
 function profile(options) {
     return new Profile(options);
 }
 
-var SCHEMA = {
-    
+
+var TYPES = {
+    FOLDER: {
+        setup: function (value) {
+            if(!fs.isDir(value)){
+                fs.mkdir(value);
+            }
+        }
+    },
+
+    FILE: {
+        setup: function (value) {
+            if(!fs.isFile(value)){
+                fs.write(value, '');
+            }
+        }
+    }
 };
+
+
+profile.TYPES = TYPES;
+
+Object.freeze(profile.TYPES);
+Object.preventExtensions(profile.TYPES);
 
 
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
@@ -24,7 +48,7 @@ var SCHEMA = {
 // - path: {node_path} path to save the profiles
 function Profile(options) {
     this.path = this._formatPath(options.path);
-    this.schema = options.schema;
+    this.profile = new Attr(options.schema);
 
     this._prepare();
 }
@@ -53,37 +77,58 @@ mix(Profile.prototype, {
     // get all profile names
     // @return {Array.<string>}
     getAll: function() {
-        
+        return this.attr.get('profiles');
     },
 
     // get the current profile name
     // @return {string|null}
     getCurrent: function() {
-        
+        return this.attr.get('current');
     },
 
     // 
     switchTo: function(name, callback) {
         this.emit('switch', {
-            former: 
-            current: 
+            // former: 
+            // current: 
         });
     },
 
     // @return {boolean}
     add: function(name, callback) {
         this.emit('add', {
-            name:
+            // name:
         });
+    },
+
+    // apply the current schema preferences, if it's an empty profile
+    _applySchema: function () {
+        
     },
 
     // @param 
     option: function(key, value) {
-        this.emit('optionChange', {
-            key: key,
-            value: 
-            formerValue:
-        });  
+        switch(arguments.length){
+            case 0:
+                return this._getAllOption();
+                break;
+
+            case 1:
+                return this._getOption(key);
+                break;
+
+            case 2:
+                this._setOption(key, value);
+                break;
+        }
+    },
+
+    addOption: function () {
+        
+    },
+
+    _getAllOption: function () {
+        
     },
 
     _getOption: function(key) {
@@ -91,7 +136,11 @@ mix(Profile.prototype, {
     },
 
     _setOption: function(key, value) {
-        
+        this.emit('optionChange', {
+            // key: key,
+            // value: 
+            // formerValue:
+        });
     },
 
     // @param {string} name profile name
@@ -104,9 +153,58 @@ mix(Profile.prototype, {
 
     // prepare environment
     _prepare: function() {
-        if(!fs.exists(this.path)){
-            fs.mkdir(this.path);
-        }
+        var self = this;
+
+        this.attr = new Attr({
+            path: {
+                value: this.path,
+                type: {
+                    readOnly: true,
+                    setup: function (value) {
+                        if(!fs.isDir(value)){
+                            fs.mkdir(value);
+                        }
+
+                        var profiles = self.path_profiles = node_path.join(value, 'profiles');
+                        var current = self.path_current = node_path.join(value, 'current_profile');
+
+                        if(!fs.isFile(profiles)){
+                            fs.write(profiles, '');
+                        }
+
+                        if(!fs.isFile(current)){
+                            fs.write(current, '');
+                        }
+
+
+                    }
+                }
+            },
+
+            profiles: {
+                type: {
+                    getter: function () {
+                        return fs.read(self.path_profiles).split(/[\r\n]+/).filter(Boolean);
+                    },
+
+                    setter: function () {
+                        
+                    }
+                }
+            },
+
+            current: {
+                type: {
+                    getter: function () {
+                        return fs.read(self.path_current).trim();
+                    },
+
+                    setter: function (v) {
+                        fs.write(self.path_current, v);
+                    }
+                }
+            }
+        });
     },
 
     // normalize path, convert '~' to the absolute pathname of the current user
