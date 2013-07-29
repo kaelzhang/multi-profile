@@ -43,14 +43,21 @@ Object.freeze(profile.TYPES);
 Object.preventExtensions(profile.TYPES);
 
 
+var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
+
+
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
 // @param {Object} options
 // - path: {node_path} path to save the profiles
 function Profile(options) {
     this.path = this._formatPath(options.path);
-    this.profile = new Attr(options.schema);
+    this.schema = options.schema;
 
     this._prepare();
+    this._prepareProfile();
+
+    var current = options.current || this.getCurrent();
+    current && this._initProfile(current);
 }
 
 node_util.inherits(Profile, event_emitter);
@@ -86,24 +93,54 @@ mix(Profile.prototype, {
         return this.attr.get('current');
     },
 
+    exists: function (name) {
+        return !! ~ this.getAll().indexOf(name);
+    },
+
     // 
-    switchTo: function(name, callback) {
-        this.emit('switch', {
-            // former: 
-            // current: 
-        });
-    },
+    switchTo: function(name) {
+        var current = this.getCurrent();
+        var err = null;
 
-    // @return {boolean}
-    add: function(name, callback) {
-        this.emit('add', {
-            // name:
-        });
-    },
+        if(current === name){
+            err = '"' + name + '" is already the current profile.';
 
-    // apply the current schema preferences, if it's an empty profile
-    _applySchema: function () {
+        }else if( ! this.exists(name) ){
+            err = 'Profile "' + name + '" not found.'
         
+        }else{
+            this.attr.set('current', name);
+
+            this._initProfile(name);
+        }
+
+        this.emit('switch', {
+            err: err
+            former: current,
+            current: err ? current : name
+        });
+    },
+
+    // Add a new profile.
+    // Adding a profile will not do nothing about initialization
+    add: function(name) {
+        var err = null;
+        
+        if( this.exists(name) ){
+            err = 'Profile "' + name + '" already exists.'
+        
+        }else if( ~ RESERVED_PROFILE_NAME.indexOf(name) ){
+            err = 'Profile name "' + name + '" is reserved by `multi-profile`';
+
+        }else{
+            profiles.push(name);
+            this.attr.set('profiles', profiles);
+        }
+
+        this.emit('add', {
+            err: err,
+            name: name
+        });
     },
 
     // @param 
@@ -123,38 +160,61 @@ mix(Profile.prototype, {
         }
     },
 
-    addOption: function () {
-        
+    addOption: function (key, attr) {
+        return this.profile.add(key, attr);
     },
 
     _getAllOption: function () {
-        
+        return this.profile.get();
     },
 
     _getOption: function(key) {
-        
+        return this.profile.get(key);
     },
 
     _setOption: function(key, value) {
+        var former = this.profile.get(key);
+
+        var success = this.profile.set(key, value);
+
         this.emit('optionChange', {
-            // key: key,
-            // value: 
-            // formerValue:
+            err: !success,
+            key: key,
+            value: value
+            formerValue: former
         });
     },
 
     // @param {string} name profile name
-    del: function(name, callback) {
-        
+    // @param {}
+    del: function(name, remove_data) {
+        var profiles = this.getAll();
+        var current = this.getCurrent();
+        var index = profiles.indexOf(name);
+        var err = null;
+
+        if(current === name){
+            err = 'You could not delete current profile.';
+
+        }else if(! ~ index){
+            err = 'Profile "' + name + '" not found.';
+        }else{
+            profiles.splice(index, 1);
+            this.attr.set('profile', profiles);
+
+            if(remove_data){
+                fs.delete( node_path.join(this.path, name) );
+            }
+        }
+
         this.emit('delete', {
+            err: err,
             name: name
         });
     },
 
     // prepare environment
     _prepare: function() {
-        var self = this;
-
         this.attr = new Attr({
             path: {
                 value: this.path,
@@ -165,8 +225,8 @@ mix(Profile.prototype, {
                             fs.mkdir(value);
                         }
 
-                        var profiles = self.path_profiles = node_path.join(value, 'profiles');
-                        var current = self.path_current = node_path.join(value, 'current_profile');
+                        var profiles = this.path_profiles = node_path.join(value, 'profiles');
+                        var current = this.path_current = node_path.join(value, 'current_profile');
 
                         if(!fs.isFile(profiles)){
                             fs.write(profiles, '');
@@ -175,8 +235,6 @@ mix(Profile.prototype, {
                         if(!fs.isFile(current)){
                             fs.write(current, '');
                         }
-
-
                     }
                 }
             },
@@ -184,11 +242,13 @@ mix(Profile.prototype, {
             profiles: {
                 type: {
                     getter: function () {
-                        return fs.read(self.path_profiles).split(/[\r\n]+/).filter(Boolean);
+                        return fs.read(this.path_profiles).split(/[\r\n]+/).filter(Boolean);
                     },
 
-                    setter: function () {
-                        
+                    setter: function (profiles) {
+                        fs.write(this.path_profiles, profiles.join('\n'));
+
+                        return profiles;
                     }
                 }
             },
@@ -196,15 +256,31 @@ mix(Profile.prototype, {
             current: {
                 type: {
                     getter: function () {
-                        return fs.read(self.path_current).trim();
+                        return fs.read(this.path_current).trim() || null;
                     },
 
                     setter: function (v) {
-                        fs.write(self.path_current, v);
+                        fs.write(this.path_current, v);
+
+                        return v;
                     }
                 }
             }
+
+        }, {
+            host: this
         });
+    },
+
+    _prepareProfile: function () {
+        this.profile = new Attr(Object.create(options.schema), {
+            host: this
+        });
+    },
+
+    // read properties of current profile
+    _initProfile: function (name) {
+        
     },
 
     // normalize path, convert '~' to the absolute pathname of the current user
