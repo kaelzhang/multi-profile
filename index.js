@@ -8,6 +8,7 @@ var event_emitter   = require('events').EventEmitter;
 var node_util       = require('util');
 var node_path       = require('path');
 var fs              = require('fs-sync');
+var code            = require('code-this');
 // var ini             = require('ini');
 
 var Attr            = require('./lib/attributes');
@@ -18,29 +19,29 @@ function profile(options) {
 }
 
 
-var TYPES = {
-    FOLDER: {
-        setup: function (value) {
-            if(!fs.isDir(value)){
-                fs.mkdir(value);
-            }
-        }
-    },
+// var TYPES = {
+//     FOLDER: {
+//         setup: function (value) {
+//             if(!fs.isDir(value)){
+//                 fs.mkdir(value);
+//             }
+//         }
+//     },
 
-    FILE: {
-        setup: function (value) {
-            if(!fs.isFile(value)){
-                fs.write(value, '');
-            }
-        }
-    }
-};
+//     FILE: {
+//         setup: function (value) {
+//             if(!fs.isFile(value)){
+//                 fs.write(value, '');
+//             }
+//         }
+//     }
+// };
 
 
-profile.TYPES = TYPES;
+// profile.TYPES = TYPES;
 
-Object.freeze(profile.TYPES);
-Object.preventExtensions(profile.TYPES);
+// Object.freeze(profile.TYPES);
+// Object.preventExtensions(profile.TYPES);
 
 
 var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
@@ -54,9 +55,9 @@ function Profile(options) {
     this.schema = options.schema;
 
     this._prepare();
-    this._prepareProfile();
+    // this._prepareProfile();
 
-    var current = options.current || this.getCurrent();
+    var current = options.current || this.current();
     current && this._initProfile(current);
 }
 
@@ -83,23 +84,23 @@ mix(Profile.prototype, {
 
     // get all profile names
     // @return {Array.<string>}
-    getAll: function() {
+    all: function() {
         return this.attr.get('profiles');
     },
 
     // get the current profile name
     // @return {string|null}
-    getCurrent: function() {
+    current: function() {
         return this.attr.get('current');
     },
 
     exists: function (name) {
-        return !! ~ this.getAll().indexOf(name);
+        return !! ~ this.all().indexOf(name);
     },
 
     // 
     switchTo: function(name) {
-        var current = this.getCurrent();
+        var current = this.current();
         var err = null;
 
         if(current === name){
@@ -115,7 +116,7 @@ mix(Profile.prototype, {
         }
 
         this.emit('switch', {
-            err: err
+            err: err,
             former: current,
             current: err ? current : name
         });
@@ -125,8 +126,9 @@ mix(Profile.prototype, {
     // Adding a profile will not do nothing about initialization
     add: function(name) {
         var err = null;
+        var profiles = this.all();
         
-        if( this.exists(name) ){
+        if( ~ profiles.indexOf(name) ){
             err = 'Profile "' + name + '" already exists.'
         
         }else if( ~ RESERVED_PROFILE_NAME.indexOf(name) ){
@@ -160,9 +162,10 @@ mix(Profile.prototype, {
         }
     },
 
-    addOption: function (key, attr) {
-        return this.profile.add(key, attr);
-    },
+    // not allow to add options
+    // addOption: function (key, attr) {
+    //     return this.profile.add(key, attr);
+    // },
 
     _getAllOption: function () {
         return this.profile.get();
@@ -180,7 +183,7 @@ mix(Profile.prototype, {
         this.emit('optionChange', {
             err: !success,
             key: key,
-            value: value
+            value: value,
             formerValue: former
         });
     },
@@ -188,8 +191,8 @@ mix(Profile.prototype, {
     // @param {string} name profile name
     // @param {}
     del: function(name, remove_data) {
-        var profiles = this.getAll();
-        var current = this.getCurrent();
+        var profiles = this.all();
+        var current = this.current();
         var index = profiles.indexOf(name);
         var err = null;
 
@@ -213,6 +216,11 @@ mix(Profile.prototype, {
         });
     },
 
+    // save the current configurations
+    save: function () {
+        fs.write(this.profile_file, 'module.exports = ' + code(this.profile.get(), null, 4) + ';' );
+    },
+
     // prepare environment
     _prepare: function() {
         this.attr = new Attr({
@@ -225,8 +233,8 @@ mix(Profile.prototype, {
                             fs.mkdir(value);
                         }
 
-                        var profiles = this.path_profiles = node_path.join(value, 'profiles');
-                        var current = this.path_current = node_path.join(value, 'current_profile');
+                        var profiles = this.profiles_file = node_path.join(value, 'profiles');
+                        var current = this.current_file = node_path.join(value, 'current_profile');
 
                         if(!fs.isFile(profiles)){
                             fs.write(profiles, '');
@@ -242,11 +250,11 @@ mix(Profile.prototype, {
             profiles: {
                 type: {
                     getter: function () {
-                        return fs.read(this.path_profiles).split(/[\r\n]+/).filter(Boolean);
+                        return fs.read(this.profiles_file).split(/[\r\n]+/).filter(Boolean);
                     },
 
                     setter: function (profiles) {
-                        fs.write(this.path_profiles, profiles.join('\n'));
+                        fs.write(this.profiles_file, profiles.join('\n'));
 
                         return profiles;
                     }
@@ -256,11 +264,11 @@ mix(Profile.prototype, {
             current: {
                 type: {
                     getter: function () {
-                        return fs.read(this.path_current).trim() || null;
+                        return fs.read(this.current_file).trim() || null;
                     },
 
                     setter: function (v) {
-                        fs.write(this.path_current, v);
+                        fs.write(this.current_file, v);
 
                         return v;
                     }
@@ -272,15 +280,30 @@ mix(Profile.prototype, {
         });
     },
 
-    _prepareProfile: function () {
-        this.profile = new Attr(Object.create(options.schema), {
-            host: this
-        });
-    },
+    // _prepareProfile: function () {
+        
+    // },
 
     // read properties of current profile
     _initProfile: function (name) {
+        this.profile = new Attr(Object.create(this.schema), {
+            host: this
+        });
+
+        var profile_dir = this.profile_dir = node_path.join(this.path, name);
+
+        if( !fs.isDir(profile_dir) ){
+            fs.mkdir(profile_dir);
+        }
+
+        var profile_file = this.profile_file = node_path.join(profile_dir, 'config.js');
+
+        if( !fs.isFile(profile_file) ){
+            fs.write(profile_file, 'module.exports = {};');
         
+        }else{
+            this.profile.set( require(profile_file) );
+        }
     },
 
     // normalize path, convert '~' to the absolute pathname of the current user
