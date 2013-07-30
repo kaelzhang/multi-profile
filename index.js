@@ -51,7 +51,7 @@ var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
 // @param {Object} options
 // - path: {node_path} path to save the profiles
 function Profile(options) {
-    this.path = this._formatPath(options.path);
+    this.path = this.resolvePath(options.path);
     this.schema = options.schema;
 
     this._prepare();
@@ -307,7 +307,7 @@ mix(Profile.prototype, {
     },
 
     // normalize path, convert '~' to the absolute pathname of the current user
-    _formatPath: function(path) {
+    formatPath: function(path) {
         if( path.indexOf('~') === 0){
             var USER_HOME = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 
