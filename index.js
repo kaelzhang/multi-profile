@@ -54,7 +54,7 @@ profile.resolvePath = function(path) {
         path = path.replace( /^~/, USER_HOME );
     }
 
-    return path;
+    return node_path.resolve(path);
 };
 
 
@@ -232,7 +232,7 @@ mix(Profile.prototype, {
 
     // save the current configurations
     save: function () {
-        fs.write(this.profile_file, 'module.exports = ' + code(this.profile.get(), null, 4) + ';' );
+        fs.write(this.profile_file, 'module.exports = ' + code(this.profile.getWritable(), null, 4) + ';' );
     },
 
     // prepare environment
