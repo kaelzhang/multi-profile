@@ -24,13 +24,16 @@ var profile = multi_profile({
                     if(v <= 9000){
                         attr.error('`port` must greater than 9000');
                     }
+                    // If you've already called `attr.error`, it will be considered a failure,
+                    // which means it's not necessary to return a value
                     return v > 9000;
                 },
                 setter: function (v, key, attr) {
-                    // `this` will be data
-                    this.port = v;
+                    // `this` <=> `data`
+                    // The return value will set to the multi-profile instance.
+                    // And in the same time, we set `port` to `data`
+                    return this.port = v;
                 },
-
                 getter: function(v, key, attr){
                     return this.port || v;
                 }
