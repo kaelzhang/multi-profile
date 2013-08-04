@@ -12,16 +12,22 @@ npm install multi-profile --save
 
 ```js
 var multi_profile = require('multi-profile');
+var data = {};
 var profile = multi_profile({
     path: '~/.cortex',
+    context: data,
     schema: {
         port: {
             value: 8888,
             type: {
                 validator: function (v, key, attr) {
+                    if(v <= 9000){
+                        attr.error('`port` must greater than 9000');
+                    }
                     return v > 9000;
                 },
                 setter: function (v, key, attr) {
+                    // `this` will be data
                     this.port = v;
                 },
 

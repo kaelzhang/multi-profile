@@ -64,6 +64,7 @@ profile.resolvePath = function(path) {
 function Profile(options) {
     this.path = profile.resolvePath(options.path);
     this.schema = options.schema;
+    this.context = options.context || null;
 
     this._prepare();
     // this._prepareProfile();
@@ -301,7 +302,7 @@ mix(Profile.prototype, {
     // Initialize properties of current profile
     _initProfile: function (name) {
         this.profile = new Attr(Object.create(this.schema), {
-            host: this
+            context: this.context
         });
 
         var profile_dir = this.profile_dir = node_path.join(this.path, name);
