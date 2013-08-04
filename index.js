@@ -46,12 +46,23 @@ function profile(options) {
 
 var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
 
+// normalize path, convert '~' to the absolute pathname of the current user
+profile.resolvePath = function(path) {
+    if( path.indexOf('~') === 0){
+        var USER_HOME = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
+
+        path = path.replace( /^~/, USER_HOME );
+    }
+
+    return path;
+};
+
 
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
 // @param {Object} options
 // - path: {node_path} path to save the profiles
 function Profile(options) {
-    this.path = this.resolvePath(options.path);
+    this.path = profile.resolvePath(options.path);
     this.schema = options.schema;
 
     this._prepare();
@@ -147,17 +158,28 @@ mix(Profile.prototype, {
 
     // @param 
     option: function(key, value) {
+        var data;
+
         switch(arguments.length){
             case 0:
                 return this._getAllOption();
                 break;
 
             case 1:
-                return this._getOption(key);
+                if(Object(key) === key){
+                    data = key;
+                    return this._setOption(data);
+
+                }else if(typeof key === value){
+                    return this._getOption(key);
+                }
+                
                 break;
 
             case 2:
-                this._setOption(key, value);
+                data = {};
+                data[key] = value;
+                this._setOption(data);
                 break;
         }
     },
@@ -175,17 +197,8 @@ mix(Profile.prototype, {
         return this.profile.get(key);
     },
 
-    _setOption: function(key, value) {
-        var former = this.profile.get(key);
-
-        var success = this.profile.set(key, value);
-
-        this.emit('optionChange', {
-            err: !success,
-            key: key,
-            value: value,
-            formerValue: former
-        });
+    _setOption: function(data) {
+        return this.profile.set(data);
     },
 
     // @param {string} name profile name
@@ -223,6 +236,8 @@ mix(Profile.prototype, {
 
     // prepare environment
     _prepare: function() {
+
+        // the attributes for multi-profile itself
         this.attr = new Attr({
             path: {
                 value: this.path,
@@ -280,11 +295,10 @@ mix(Profile.prototype, {
         });
     },
 
-    // _prepareProfile: function () {
-        
-    // },
 
-    // read properties of current profile
+    // Initialize the current profile,
+    // and create necessary files and dirs if not exists.
+    // Initialize properties of current profile
     _initProfile: function (name) {
         this.profile = new Attr(Object.create(this.schema), {
             host: this
@@ -306,14 +320,8 @@ mix(Profile.prototype, {
         }
     },
 
-    // normalize path, convert '~' to the absolute pathname of the current user
-    formatPath: function(path) {
-        if( path.indexOf('~') === 0){
-            var USER_HOME = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
-
-            path = path.replace( /^~/, USER_HOME );
-        }
-
-        return path;
+    // Reload properties
+    reload: function () {
+        this.profile.set( require(this.profile_file) );
     }
 });
