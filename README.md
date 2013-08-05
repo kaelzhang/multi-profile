@@ -89,5 +89,11 @@ Get the configuration of the current profile by key
 
 Save the current configurations permanently.
 
+## Static Methods
+
+### multi_profile.resolveHomePath(path)
+
+Resolve `'~/'` to the absolute home path of the curernt user.
+
 
 
