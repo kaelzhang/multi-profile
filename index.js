@@ -47,14 +47,14 @@ function profile(options) {
 var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
 
 // normalize path, convert '~' to the absolute pathname of the current user
-profile.resolvePath = function(path) {
+profile.resolveHomePath = function(path) {
     if( path.indexOf('~') === 0){
         var USER_HOME = process.env[(process.platform == 'win32') ? 'USERPROFILE' : 'HOME'];
 
         path = path.replace( /^~/, USER_HOME );
     }
 
-    return node_path.resolve(path);
+    return path;
 };
 
 
@@ -62,7 +62,7 @@ profile.resolvePath = function(path) {
 // @param {Object} options
 // - path: {node_path} path to save the profiles
 function Profile(options) {
-    this.path = profile.resolvePath(options.path);
+    this.path = node_path.resolve( profile.resolveHomePath(options.path) );
     this.schema = options.schema;
     this.context = options.context || null;
 
@@ -104,6 +104,10 @@ mix(Profile.prototype, {
     // @return {string|null}
     current: function() {
         return this.attr.get('current');
+    },
+
+    currentDir: function () {
+        return this.profile_dir || null;  
     },
 
     exists: function (name) {
@@ -263,6 +267,7 @@ mix(Profile.prototype, {
                 }
             },
 
+            // get or set the names of profiles
             profiles: {
                 type: {
                     getter: function () {
@@ -277,6 +282,7 @@ mix(Profile.prototype, {
                 }
             },
 
+            // get or set the name of the current profile
             current: {
                 type: {
                     getter: function () {
