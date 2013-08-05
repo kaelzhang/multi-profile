@@ -57,6 +57,23 @@ profile.resolveHomePath = function(path) {
     return path;
 };
 
+// Force to touching a file, if the file is not exists
+// If there's already a dir named `path`, the former dir will be copied as a backup before being deleted
+profile.touchFile = function (path) {
+    if(!fs.isFile(path)){
+        if(fs.isDir(path)){
+            fs.copy(path, path + '-bak-' + Date.now(), {
+                force: true
+            });
+
+            fs.delete(path);
+        }
+
+        // create empty file
+        fs.write(path, '');
+    }
+};
+
 
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
 // @param {Object} options
@@ -256,13 +273,8 @@ mix(Profile.prototype, {
                         var profiles = this.profiles_file = node_path.join(value, 'profiles');
                         var current = this.current_file = node_path.join(value, 'current_profile');
 
-                        if(!fs.isFile(profiles)){
-                            fs.write(profiles, '');
-                        }
-
-                        if(!fs.isFile(current)){
-                            fs.write(current, '');
-                        }
+                        profile.touchFile(profiles);
+                        profile.touchFile(current);
                     }
                 }
             },
