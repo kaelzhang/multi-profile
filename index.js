@@ -9,7 +9,6 @@ var node_util       = require('util');
 var node_path       = require('path');
 var fs              = require('fs-sync');
 var code            = require('code-this');
-// var ini             = require('ini');
 
 var Attr            = require('./lib/attributes');
 
@@ -18,33 +17,8 @@ function profile(options) {
     return new Profile(options);
 }
 
-
-// var TYPES = {
-//     FOLDER: {
-//         setup: function (value) {
-//             if(!fs.isDir(value)){
-//                 fs.mkdir(value);
-//             }
-//         }
-//     },
-
-//     FILE: {
-//         setup: function (value) {
-//             if(!fs.isFile(value)){
-//                 fs.write(value, '');
-//             }
-//         }
-//     }
-// };
-
-
-// profile.TYPES = TYPES;
-
-// Object.freeze(profile.TYPES);
-// Object.preventExtensions(profile.TYPES);
-
-
-var RESERVED_PROFILE_NAME = ['profiles', 'current_profile'];
+var DEFAULT_PROFILE = 'default';
+var RESERVED_PROFILE_NAME = ['profiles', 'current_profile', DEFAULT_PROFILE];
 
 // normalize path, convert '~' to the absolute pathname of the current user
 profile.resolveHomePath = function(path) {
@@ -84,30 +58,13 @@ function Profile(options) {
     this.context = options.context || null;
 
     this._prepare();
-    // this._prepareProfile();
+    this._prepareProfile();
 
     var current = options.current || this.current();
     current && this._initProfile(current);
 }
 
 node_util.inherits(Profile, event_emitter);
-
-
-function mix (receiver, supplier, override){
-    var key;
-
-    if(arguments.length === 2){
-        override = true;
-    }
-
-    for(key in supplier){
-        if(override || !(key in receiver)){
-            receiver[key] = supplier[key]
-        }
-    }
-
-    return receiver;
-}
 
 mix(Profile.prototype, {
 
@@ -339,8 +296,43 @@ mix(Profile.prototype, {
         }
     },
 
+    // Prepare profile
+    _prepareProfile: function () {
+        var current = options.current || this.current();
+
+        // Make sure there is always a 'default' profile
+        if( ! ~ this.all().indexOf(DEFAULT_PROFILE) ){
+            this.add(DEFAULT_PROFILE);
+        }
+
+        if(current){
+            this._initProfile(current);
+        }else{
+
+            // Use 'default' profile by default
+            this.switchTo(DEFAULT_PROFILE);
+        }
+    },
+
     // Reload properties
     reload: function () {
         this.profile.set( require(this.profile_file) );
     }
 });
+
+
+function mix (receiver, supplier, override){
+    var key;
+
+    if(arguments.length === 2){
+        override = true;
+    }
+
+    for(key in supplier){
+        if(override || !(key in receiver)){
+            receiver[key] = supplier[key]
+        }
+    }
+
+    return receiver;
+}
