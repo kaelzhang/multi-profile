@@ -58,10 +58,7 @@ function Profile(options) {
     this.context = options.context || null;
 
     this._prepare();
-    this._prepareProfile();
-
-    var current = options.current || this.current();
-    current && this._initProfile(current);
+    this._prepareProfile(options.profile);
 }
 
 node_util.inherits(Profile, event_emitter);
@@ -149,7 +146,7 @@ mix(Profile.prototype, {
                     data = key;
                     return this._setOption(data);
 
-                }else if(typeof key === value){
+                }else if(typeof key === 'string'){
                     return this._getOption(key);
                 }
                 
@@ -297,8 +294,8 @@ mix(Profile.prototype, {
     },
 
     // Prepare profile
-    _prepareProfile: function () {
-        var current = options.current || this.current();
+    _prepareProfile: function (name) {
+        var current = name || this.current();
 
         // Make sure there is always a 'default' profile
         if( ! ~ this.all().indexOf(DEFAULT_PROFILE) ){
