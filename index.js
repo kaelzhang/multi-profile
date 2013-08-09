@@ -40,7 +40,7 @@ profile.touchFile = function (path) {
                 force: true
             });
 
-            fs.delete(path);
+            fs.remove(path);
         }
 
         // create empty file
@@ -195,7 +195,7 @@ mix(Profile.prototype, {
             this.attr.set('profile', profiles);
 
             if(remove_data){
-                fs.delete( node_path.join(this.path, name) );
+                fs.remove( node_path.join(this.path, name) );
             }
         }
 

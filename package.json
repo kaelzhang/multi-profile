@@ -13,6 +13,6 @@
   "author": "Kael",
   "license": "MIT",
   "dependencies": {
-    "fs-sync": "0.0.2"
+    "fs-sync": "0.2.1"
   }
 }
