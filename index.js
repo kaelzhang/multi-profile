@@ -158,6 +158,9 @@ mix(Profile.prototype, {
         }
     },
 
+    resetOption: function (name) {
+        this.profile.reset(name);
+    },
 
     // not allow to add options
     // addOption: function (key, attr) {
