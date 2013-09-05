@@ -9,8 +9,7 @@ var node_util       = require('util');
 var node_path       = require('path');
 var fs              = require('fs-sync');
 var code            = require('code-this');
-
-var Attr            = require('./lib/attributes');
+var trait           = require('trait');
 
 
 function profile(options) {
@@ -77,6 +76,7 @@ mix(Profile.prototype, {
         return this.attr.get('current');
     },
 
+    // get the current profile directory which contains a variety of files
     currentDir: function () {
         return this.profile_dir || null;  
     },
@@ -144,7 +144,7 @@ mix(Profile.prototype, {
             case 1:
                 if(Object(key) === key){
                     data = key;
-                    return this._setOption(data);
+                    return this.profile.set(data);
 
                 }else if(typeof key === 'string'){
                     return this._getOption(key);
@@ -153,12 +153,11 @@ mix(Profile.prototype, {
                 break;
 
             case 2:
-                data = {};
-                data[key] = value;
-                this._setOption(data);
+                return this.profile.set(key, value);
                 break;
         }
     },
+
 
     // not allow to add options
     // addOption: function (key, attr) {
@@ -171,10 +170,6 @@ mix(Profile.prototype, {
 
     _getOption: function(key) {
         return this.profile.get(key);
-    },
-
-    _setOption: function(data) {
-        return this.profile.set(data);
     },
 
     // @param {string} name profile name
@@ -207,14 +202,30 @@ mix(Profile.prototype, {
 
     // save the current configurations
     save: function () {
-        fs.write(this.profile_file, 'module.exports = ' + code(this.profile.getWritable(), null, 4) + ';' );
+        fs.write(this.profile_file, 'module.exports = ' + code(this._getWritableData(), null, 4) + ';' );
+    },
+
+    _getWritableData: function () {
+        var data = this.profile.get();
+        var ret = {};
+
+        this.profile.writable().forEach(function (key) {
+            ret[key] = date[key];
+        });
+
+        return ret;
+    },
+
+    // @returns {Array}
+    // get the list of writable property names 
+    writable: function () {
+        return this.profile.writable();
     },
 
     // prepare environment
     _prepare: function() {
-
         // the attributes for multi-profile itself
-        this.attr = new Attr({
+        this.attr = trait({
             path: {
                 value: this.path,
                 type: {
@@ -262,7 +273,6 @@ mix(Profile.prototype, {
                     }
                 }
             }
-
         }, {
             host: this
         });
@@ -273,7 +283,7 @@ mix(Profile.prototype, {
     // and create necessary files and dirs if not exists.
     // Initialize properties of current profile
     _initProfile: function (name) {
-        this.profile = new Attr(Object.create(this.schema), {
+        this.profile = trait(Object.create(this.schema), {
             context: this.context
         });
 
