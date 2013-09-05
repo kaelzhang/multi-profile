@@ -201,8 +201,19 @@ mix(Profile.prototype, {
     },
 
     // save the current configurations
-    save: function () {
-        fs.write(this.profile_file, 'module.exports = ' + code(this._getWritableData(), null, 4) + ';' );
+    save: function (key) {
+        if(arguments.length === 0){
+            this._save( this._getWritableData() );
+        }else{
+            var data = this._get_data();
+            data[key] = this.option(key);
+
+            this._save( data );
+        }
+    },
+
+    _save: function (data) {
+        fs.write(this.profile_file, 'module.exports = ' + code(data, null, 4) + ';' );
     },
 
     _getWritableData: function () {
@@ -210,7 +221,7 @@ mix(Profile.prototype, {
         var ret = {};
 
         this.profile.writable().forEach(function (key) {
-            ret[key] = date[key];
+            ret[key] = data[key];
         });
 
         return ret;
@@ -323,7 +334,17 @@ mix(Profile.prototype, {
 
     // Reload properties
     reload: function () {
-        this.profile.set( require(this.profile_file) );
+        this.profile.set( this._get_data() );
+    },
+
+    _get_data: function () {
+        var data = {};
+
+        try {
+            data = require(this.profile_file);
+        } catch(e) {}
+
+        return data;
     }
 });
 
