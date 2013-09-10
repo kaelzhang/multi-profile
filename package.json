@@ -1,6 +1,6 @@
 {
   "name": "multi-profile",
-  "version": "0.1.9",
+  "version": "0.1.10",
   "description": "Multi-profile is a module to manage global configurations for multiple profiles.",
   "main": "index.js",
   "scripts": {
@@ -13,6 +13,8 @@
   "author": "Kael",
   "license": "MIT",
   "dependencies": {
-    "fs-sync": "0.2.1"
+    "fs-sync": "~0.2.1",
+    "code-this": "~0.1.3",
+    "trait": "~0.1.2"
   }
 }
