@@ -109,16 +109,20 @@ mix(Profile.prototype, {
         });
     },
 
+    add: function (name) {
+        return this._add(name);  
+    },
+
     // Add a new profile.
     // Adding a profile will not do nothing about initialization
-    add: function(name) {
+    _add: function(name, force) {
         var err = null;
         var profiles = this.all();
         
         if( ~ profiles.indexOf(name) ){
-            err = 'Profile "' + name + '" already exists.'
+            err = 'Profile "' + name + '" already exists.';
         
-        }else if( ~ RESERVED_PROFILE_NAME.indexOf(name) ){
+        }else if( !force && ~ RESERVED_PROFILE_NAME.indexOf(name) ){
             err = 'Profile name "' + name + '" is reserved by `multi-profile`';
 
         }else{
@@ -323,7 +327,7 @@ mix(Profile.prototype, {
 
         // Make sure there is always a 'default' profile
         if( ! ~ this.all().indexOf(DEFAULT_PROFILE) ){
-            this.add(DEFAULT_PROFILE);
+            this._add(DEFAULT_PROFILE, true);
         }
 
         if(current){
