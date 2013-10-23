@@ -85,9 +85,11 @@ Get all configurations of the curent profile
 
 Get the configuration of the current profile by key
 
-### profile.saveData(data)
+### profile.save(data)
 
 Save `data` to the configuration.
+
+If `data` is not specified, all writable key-values will be saved.
 
 ## Static Methods
 
