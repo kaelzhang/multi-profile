@@ -85,9 +85,9 @@ Get all configurations of the curent profile
 
 Get the configuration of the current profile by key
 
-### profile.save()
+### profile.saveData(data)
 
-Save the current configurations permanently.
+Save `data` to the configuration.
 
 ## Static Methods
 

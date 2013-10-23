@@ -215,30 +215,26 @@ mix(Profile.prototype, {
         });
     },
 
-    // save the current configurations
-    save: function (key) {
-        if(arguments.length === 0){
-            this._save( this._getWritableData() );
-        }else{
-            var data = this._get_data();
-            data[key] = this.option(key);
+    save: function (data) {
+        if ( arguments.length === 0 ) {
+            this._save(this._getWritableData());
 
-            this._save( data );
+        } else {
+            this._save(data);
         }
     },
 
+    // save the current configurations
     _save: function (data) {
         fs.write(this.profile_file, 'module.exports = ' + code(data, null, 4) + ';' );
     },
 
     _getWritableData: function () {
-        var data = this.profile.get();
+        var ret = {};
 
-        this.profile.writable().forEach(function (key) {
-            if ( key in data ) {
-                ret[key] = data[key];
-            }
-        });
+        this.writable().forEach(function (key) {
+            ret[key] = this.get(key);
+        }, this);
 
         return ret;
     },
@@ -247,6 +243,10 @@ mix(Profile.prototype, {
     // get the list of writable property names 
     writable: function () {
         return this.profile.writable();
+    },
+
+    enumerable: function () {
+        return this.profile.enumerable();
     },
 
     // prepare environment
