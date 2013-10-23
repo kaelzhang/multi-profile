@@ -56,13 +56,18 @@ function Profile(options) {
     this.schema = options.schema;
     this.context = options.context || null;
 
-    this._prepare();
-    this._prepareProfile(options.profile);
+    this.options = options;
 }
 
 node_util.inherits(Profile, event_emitter);
 
 mix(Profile.prototype, {
+
+    init: function () {
+        this._prepare();
+        this._prepareProfile(this.options.profile);
+        return this;
+    },
 
     // get all profile names
     // @return {Array.<string>}
@@ -78,7 +83,7 @@ mix(Profile.prototype, {
 
     // get the current profile directory which contains a variety of files
     currentDir: function () {
-        return this.profile_dir || null;  
+        return this.profile_dir || null;
     },
 
     exists: function (name) {
@@ -359,9 +364,10 @@ mix(Profile.prototype, {
                 code: 'ECONFIG',
                 message: 'Error parsing config file "' + conf + '".',
                 data: {
-                    file: conf
+                    file: conf,
+                    error: e
                 }
-            });
+            });   
         }
 
         return data;

@@ -41,7 +41,7 @@ var p = profile({
 
         }
     }
-});
+}).init();
 
 console.log('all profiles:', p.all(), 'current profile:', p.current());
 

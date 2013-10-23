@@ -1,6 +1,6 @@
 {
   "name": "multi-profile",
-  "version": "0.1.12",
+  "version": "1.0.1",
   "description": "Multi-profile is a module to manage global configurations for multiple profiles.",
   "main": "index.js",
   "scripts": {
