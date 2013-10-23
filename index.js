@@ -249,6 +249,25 @@ mix(Profile.prototype, {
         return this.profile.enumerable();
     },
 
+    getWritable: function () {
+        return this._getFromList(this.writable());
+    },
+
+    getEnumerable: function () {
+        return this._getFromList(this.enumerable());
+    },
+
+    _getFromList: function (list) {
+        var data = {};
+        var profile = this.profile;
+
+        list.forEach(function (key) {
+            data[key] = profile.option(key);
+        });
+
+        return data;
+    },
+
     // prepare environment
     _prepare: function() {
         // the attributes for multi-profile itself
