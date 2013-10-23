@@ -233,10 +233,11 @@ mix(Profile.prototype, {
 
     _getWritableData: function () {
         var data = this.profile.get();
-        var ret = {};
 
         this.profile.writable().forEach(function (key) {
-            ret[key] = data[key];
+            if ( key in data ) {
+                ret[key] = data[key];
+            }
         });
 
         return ret;
