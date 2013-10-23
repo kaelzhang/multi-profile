@@ -125,7 +125,10 @@ mix(Profile.prototype, {
         }else if( !force && ~ RESERVED_PROFILE_NAME.indexOf(name) ){
             err = 'Profile name "' + name + '" is reserved by `multi-profile`';
 
-        }else{
+        }else if ( /^_/.test(name) ) {
+            err = 'Profile name "' + name + '" should not begin with `_`';
+
+        } else {
             profiles.push(name);
             this.attr.set('profiles', profiles);
         }
@@ -317,7 +320,7 @@ mix(Profile.prototype, {
             fs.write(profile_file, 'module.exports = {};');
         
         }else{
-            this.profile.set( require(profile_file) );
+            this.reload();
         }
     },
 
@@ -346,10 +349,20 @@ mix(Profile.prototype, {
 
     _get_data: function () {
         var data = {};
+        var conf = this.profile_file;
 
         try {
-            data = require(this.profile_file);
-        } catch(e) {}
+            data = require(conf);
+
+        } catch(e) {
+            this.emit('error', {
+                code: 'ECONFIG',
+                message: 'Error parsing config file "' + conf + '".',
+                data: {
+                    file: conf
+                }
+            });
+        }
 
         return data;
     }
