@@ -1,9 +1,14 @@
 'use strict';
 
-var profile = require('multi-profile');
+var profile = require('../');
+var expect = require('chai').expect;
+
+var node_path = require('path');
+
+var cwd = node_path.resolve('test/fixtures');
 
 var p = profile({
-    path: '~/.cortex2',
+    path: cwd,
     schema: {
         a: {
             value: 1,
