@@ -44,7 +44,11 @@ var profile = multi_profile({
             value: '~/.bashrc'
         }
     }
+
 });
+
+// .init() method must be called before any invocations of other methods.
+profile.init();
 ```
 
 ## Instance Methods
