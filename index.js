@@ -145,32 +145,24 @@ mix(Profile.prototype, {
     },
 
     // @param 
-    option: function(key, value) {
-        var data;
+    get: function(key) {
+        if ( arguments.length === 0 ) {
+            return this._getAllOption();
 
-        switch(arguments.length){
-            case 0:
-                return this._getAllOption();
-                break;
-
-            case 1:
-                if(Object(key) === key){
-                    data = key;
-                    return this.profile.set(data);
-
-                }else if(typeof key === 'string'){
-                    return this._getOption(key);
-                }
-                
-                break;
-
-            case 2:
-                return this.profile.set(key, value);
-                break;
+        } else {
+            return this._getOption(key);
         }
     },
 
-    resetOption: function (name) {
+    set: function (key, value) {
+        if ( Object(key) === key ) {
+            return this.profile.set(key);
+        } else {
+            return this.profile.set(key, value);
+        }
+    },
+
+    reset: function (name) {
         this.profile.reset(name);
     },
 
@@ -399,3 +391,4 @@ function mix (receiver, supplier, override){
 
     return receiver;
 }
+

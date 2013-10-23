@@ -69,19 +69,19 @@ Switch to a profile
 
 Delete a profile by name
 
-### profile.option(key, value)
+### profile.set(key, value)
 
 Set a configuration. If key is not in the `schema`, nothing will be done.
 
-### profile.option(key_value_map)
+### profile.set(key_value_map)
 
 Set a bunch of configurations
 
-### profile.option()
+### profile.get()
 
 Get all configurations of the curent profile
 
-### profile.option(key)
+### profile.get(key)
 
 Get the configuration of the current profile by key
 
