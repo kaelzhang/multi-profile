@@ -1,4 +1,4 @@
-# Multi-profile
+# multi-profile [![NPM version](https://badge.fury.io/js/multi-profile.png)](http://badge.fury.io/js/multi-profile) [![Build Status](https://travis-ci.org/kaelzhang/node-multi-profile.png?branch=master)](https://travis-ci.org/kaelzhang/node-multi-profile) [![Dependency Status](https://gemnasium.com/kaelzhang/node-multi-profile.png)](https://gemnasium.com/kaelzhang/node-multi-profile)
 
 Multi-profile is a module to manage global configurations for multiple profiles.
 
