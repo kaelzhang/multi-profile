@@ -217,7 +217,7 @@ mix(Profile.prototype, {
 
     save: function (data) {
         if ( arguments.length === 0 ) {
-            this._save(this._getWritableData());
+            this._save(this.getWritable());
 
         } else {
             this._save(data);
@@ -227,16 +227,6 @@ mix(Profile.prototype, {
     // save the current configurations
     _save: function (data) {
         fs.write(this.profile_file, 'module.exports = ' + code(data, null, 4) + ';' );
-    },
-
-    _getWritableData: function () {
-        var ret = {};
-
-        this.writable().forEach(function (key) {
-            ret[key] = this.get(key);
-        }, this);
-
-        return ret;
     },
 
     // @returns {Array}
@@ -259,11 +249,10 @@ mix(Profile.prototype, {
 
     _getFromList: function (list) {
         var data = {};
-        var profile = this.profile;
 
         list.forEach(function (key) {
-            data[key] = profile.option(key);
-        });
+            data[key] = this._getOption(key);
+        }, this);
 
         return data;
     },
