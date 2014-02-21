@@ -91,7 +91,7 @@ mix(Profile.prototype, {
     },
 
     // 
-    switchTo: function(name) {
+    switchTo: function(name, callback) {
         var current = this.current();
         var err = null;
 
@@ -107,20 +107,24 @@ mix(Profile.prototype, {
             this._initProfile(name);
         }
 
-        this.emit('switch', {
+        var data = {
             err: err,
             former: current,
             current: err ? current : name
-        });
+        };
+
+        this.emit('switch', data);
+
+        callback && callback(err, data);
     },
 
-    add: function (name) {
-        return this._add(name);  
+    add: function (name, callback) {
+        return this._add(name, false, callback);
     },
 
     // Add a new profile.
     // Adding a profile will not do nothing about initialization
-    _add: function(name, force) {
+    _add: function(name, force, callback) {
         var err = null;
         var profiles = this.all();
         
@@ -138,10 +142,13 @@ mix(Profile.prototype, {
             this.attr.set('profiles', profiles);
         }
 
-        this.emit('add', {
+        var data = {
             err: err,
             name: name
-        });
+        };
+        this.emit('add', data);
+
+        callback && callback(err, data);
     },
 
     // @param 
@@ -181,7 +188,7 @@ mix(Profile.prototype, {
 
     // @param {string} name profile name
     // @param {}
-    del: function(name, remove_data) {
+    del: function(name, remove_data, callback) {
         var profiles = this.all();
         var current = this.current();
         var index = profiles.indexOf(name);
@@ -194,17 +201,20 @@ mix(Profile.prototype, {
             err = 'Profile "' + name + '" not found.';
         }else{
             profiles.splice(index, 1);
-            this.attr.set('profile', profiles);
+            this.attr.set('profiles', profiles);
 
             if(remove_data){
                 fs.remove( node_path.join(this.path, name) );
             }
         }
 
-        this.emit('delete', {
+        var data = {
             err: err,
             name: name
-        });
+        };
+        this.emit('delete', data);
+
+        callback && callback(err, data);
     },
 
     save: function (data) {
