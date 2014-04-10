@@ -218,12 +218,12 @@ mix(Profile.prototype, {
   },
 
   save: function(data) {
-    if (arguments.length === 0) {
-      this._save(this.getWritable());
+    var data = arguments.length === 0
+      ? this.getWritable()
+      : data;
 
-    } else {
-      this._save(data);
-    }
+    this.raw_data = data;
+    this._save(data);
   },
 
   // save the current configurations
@@ -360,7 +360,13 @@ mix(Profile.prototype, {
 
   // Reload properties
   reload: function() {
-    this.profile.set(this._get_data());
+    var raw = this._get_data();
+    this.raw_data = raw;
+    this.profile.set(raw);
+  },
+
+  hasConfig: function (key) {
+    return key in this.raw_data;
   },
 
   _get_data: function() {
