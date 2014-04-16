@@ -55,6 +55,7 @@ function Profile(options) {
   this.path = node_path.resolve(profile.resolveHomePath(options.path));
   this.schema = options.schema;
   this.context = options.context || null;
+  this.raw_data = {};
 
   this.options = options;
 }
