@@ -8,7 +8,6 @@ var event_emitter = require('events').EventEmitter;
 var node_util = require('util');
 var node_path = require('path');
 var fs = require('fs-sync');
-var code = require('code-this');
 var trait = require('trait');
 
 
@@ -229,7 +228,7 @@ mix(Profile.prototype, {
 
   // save the current configurations
   _save: function(data) {
-    fs.write(this.profile_file, 'module.exports = ' + code(data, null, 4) + ';');
+    fs.write(this.profile_file, 'module.exports = ' + JSON.stringify(data, null, 2) + ';');
   },
 
   // @returns {Array}
