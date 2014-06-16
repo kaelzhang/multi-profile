@@ -66,7 +66,6 @@ mix(Profile.prototype, {
   init: function() {
     this._prepare();
     this._prepareProfile(this.options.profile);
-    return this;
   },
 
   // get all profile names
@@ -378,7 +377,7 @@ mix(Profile.prototype, {
 
     } catch (e) {
       this.emit('error', {
-        code: 'ECONFIG',
+        code: 'ERROR_PARSE_CONFIG',
         message: 'Error parsing config file "' + conf + '".',
         data: {
           file: conf,
