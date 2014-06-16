@@ -1,6 +1,6 @@
 {
   "name": "multi-profile",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Multi-profile is a module to manage global configurations for multiple profiles.",
   "main": "index.js",
   "scripts": {
@@ -18,6 +18,10 @@
   },
   "devDependencies": {
     "mocha": "~1.13.0",
-    "chai": "~1.8.1"
+    "chai": "~1.8.1",
+    "test-fixture": "~1.0.1"
+  },
+  "scripts": {
+    "test": "node test/profile.js"
   }
 }

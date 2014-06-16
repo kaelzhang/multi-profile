@@ -62,7 +62,6 @@ function Profile(options) {
 node_util.inherits(Profile, event_emitter);
 
 mix(Profile.prototype, {
-
   init: function() {
     this._prepare();
     this._prepareProfile(this.options.profile);
@@ -83,6 +82,10 @@ mix(Profile.prototype, {
   // get the current profile directory which contains a variety of files
   currentDir: function() {
     return this.profile_dir || null;
+  },
+
+  getPath: function () {
+    return this.path;
   },
 
   exists: function(name) {
