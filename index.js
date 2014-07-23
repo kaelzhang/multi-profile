@@ -178,6 +178,10 @@ mix(Profile.prototype, {
     return this.path;
   },
 
+  getConfigFile: function () {
+    return this.profile_file;
+  },
+
   exists: function(name) {
     return !!~this.all().indexOf(name);
   },
