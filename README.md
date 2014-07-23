@@ -11,7 +11,43 @@ npm install multi-profile --save
 ## Usage
 
 ```js
+var profile = require('multi-profile');
+var data = {};
+var p = profile({
+  path: '~/.cortex',
+  context: data,
+  schema: {
+    port: {
+      value: 8888,
+      type: {
+        validator: function(v, key, attr) {
+          if (v <= 9000) {
+            attr.error('`port` must greater than 9000');
+          }
+          // If you've already called `attr.error`, it will be considered a failure,
+          // which means it's not necessary to return a value
+          return v > 9000;
+        },
+        setter: function(v, key, attr) {
+          // `this` <=> `data`
+          // The return value will set to the multi-profile instance.
+          // And in the same time, we set `port` to `data`
+          return this.port = v;
+        },
+        getter: function(v, key, attr) {
+          return this.port || v;
+        }
+      }
+    },
 
+    rcfile: {
+      value: '~/.bashrc'
+    }
+  }
+});
+
+// .init() method must be called before any invocations of other methods.
+p.init();
 ```
 
 ## profile
