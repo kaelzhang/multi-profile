@@ -47,6 +47,11 @@ fixture.copy(function (err, dir) {
 
   var cases = [
     [
+      p.get('a'),
+      10,
+      'could read value from config file'
+    ],
+    [
       p.all().sort(),
       ['default', 'a'].sort(),
       'all profiles'
@@ -54,7 +59,7 @@ fixture.copy(function (err, dir) {
     [
       p.current(),
       'a',
-      'current profile a'
+      'current profile'
     ],
     [
       (p.add('b'), p.switchTo('b'), p.current()),
