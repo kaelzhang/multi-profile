@@ -9,6 +9,7 @@ var node_util = require('util');
 var node_path = require('path');
 var fs = require('fs-sync');
 var trait = require('trait');
+var ini = require('ini');
 
 
 function profile(options) {
@@ -55,6 +56,15 @@ var CODEC = {
     stringify: function (object) {
       return JSON.stringify(object, null, 2);
     }
+  },
+
+  ini: {
+    parse: function (string) {
+      return ini.parse(string);
+    },
+    stringify: function (object) {
+      return ini.stringify(object);
+    }
   }
 };
 
@@ -85,6 +95,18 @@ mix(Profile.prototype, {
     if (Object(codec) === codec) {
       return codec;
     }
+
+    if (typeof codec !== 'string') {
+      var error = new Error('Invalid options.codec "' + codec + '".');
+      error.code = 'INVALID_OPTION_CODEC';
+      error.data = {
+        codec: codec,
+        error: e
+      };
+      throw error;
+    }
+
+    return profile.CODEC[codec] || profile.CODEC.json;
   },
 
   // save the current configurations

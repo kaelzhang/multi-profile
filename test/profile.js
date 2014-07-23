@@ -3,12 +3,13 @@
 var profile = require('../');
 var expect = require('chai').expect;
 var node_path = require('path');
-var fixture = require('test-fixture')();
+var fixture = require('test-fixture');
 var assert = require('assert');
 
-fixture.copy(function (err, dir) {
+function test (err, dir, type) {
   var p = profile({
     path: dir,
+    codec: type,
     schema: {
       a: {
         value: 1,
@@ -22,7 +23,7 @@ fixture.copy(function (err, dir) {
         value: '2',
         type: {
           validator: function(v, key, attr) {
-            attr.error('always fail')
+            attr.error('always fail');
           }
         }
 
@@ -81,4 +82,12 @@ fixture.copy(function (err, dir) {
   cases.forEach(function (c) {
     assert.deepEqual(c[0], c[1], c[2]);
   });
+}
+
+fixture('json').copy(function (err, dir) {
+  test(err, dir, 'json');
+});
+
+fixture('ini').copy(function (err, dir) {
+  test(err, dir, 'ini');
 });
