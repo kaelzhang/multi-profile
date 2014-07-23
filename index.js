@@ -94,7 +94,6 @@ mix(Profile.prototype, {
   },
 
   _read_data: function() {
-    var data = {};
     var conf = this.profile_file;
     var content;
 
@@ -107,7 +106,6 @@ mix(Profile.prototype, {
         file: conf,
         error: e
       };
-
       throw error;
     }
 
@@ -115,6 +113,7 @@ mix(Profile.prototype, {
       return {};
     }
 
+    var data;
     try {
       data = this.codec.parse(content);
 
@@ -125,7 +124,6 @@ mix(Profile.prototype, {
         file: conf,
         error: e
       };
-
       throw error;
     }
 

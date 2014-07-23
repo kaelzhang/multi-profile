@@ -48,7 +48,7 @@ fixture.copy(function (err, dir) {
   var cases = [
     [
       p.get('a'),
-      10,
+      11,
       'could read value from config file'
     ],
     [
