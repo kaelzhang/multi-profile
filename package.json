@@ -1,10 +1,10 @@
 {
   "name": "multi-profile",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "description": "Multi-profile is a module to manage global configurations for multiple profiles.",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node test/profile.js"
   },
   "repository": {
     "type": "git",
@@ -14,14 +14,12 @@
   "license": "MIT",
   "dependencies": {
     "fs-sync": "~0.2.1",
+    "ini": "^1.2.1",
     "trait": "~0.1.2"
   },
   "devDependencies": {
     "mocha": "~1.13.0",
     "chai": "~1.8.1",
     "test-fixture": "~1.0.1"
-  },
-  "scripts": {
-    "test": "node test/profile.js"
   }
 }

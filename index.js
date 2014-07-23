@@ -47,6 +47,20 @@ profile.touchFile = function(path) {
 };
 
 
+var CODEC = {
+  json: {
+    parse: function (string) {
+      return JSON.parse(string);
+    },
+    stringify: function (object) {
+      return JSON.stringify(object, null, 2);
+    }
+  }
+};
+
+profile.CODEC = CODEC;
+
+
 // Constructor of Profile has no fault-tolerance, make sure you pass the right parameters
 // @param {Object} options
 // - path: {node_path} path to save the profiles
@@ -55,6 +69,7 @@ function Profile(options) {
   this.schema = options.schema;
   this.context = options.context || null;
   this.raw_data = {};
+  this.codec = this._get_codec(options.codec);
 
   this.options = options;
 }
@@ -62,6 +77,61 @@ function Profile(options) {
 node_util.inherits(Profile, event_emitter);
 
 mix(Profile.prototype, {
+  _get_codec: function (codec) {
+    if (!codec) {
+      return profile.CODEC.json;
+    }
+
+    if (Object(codec) === codec) {
+      return codec;
+    }
+  },
+
+  // save the current configurations
+  _save_data: function(data) {
+    var content = this.codec.stringify(data);
+    fs.write(this.profile_file, content);
+  },
+
+  _read_data: function() {
+    var data = {};
+    var conf = this.profile_file;
+    var content;
+
+    try {
+      content = fs.read(conf).trim();
+    } catch(e) {
+      var error = new Error('Error reading config file "' + conf + '".');
+      error.code = 'ERROR_READ_CONFIG';
+      error.data = {
+        file: conf,
+        error: e
+      };
+
+      throw error;
+    }
+
+    if (!content) {
+      return {};
+    }
+
+    try {
+      data = this.codec.parse(content);
+
+    } catch (e) {
+      var error = new Error('Error parsing config file "' + conf + '".');
+      error.code = 'ERROR_PARSE_CONFIG';
+      error.data = {
+        file: conf,
+        error: e
+      };
+
+      throw error;
+    }
+
+    return data;
+  },
+
   init: function() {
     this._prepare();
     this._prepareProfile(this.options.profile);
@@ -225,12 +295,7 @@ mix(Profile.prototype, {
       : data;
 
     this.raw_data = data;
-    this._save(data);
-  },
-
-  // save the current configurations
-  _save: function(data) {
-    fs.write(this.profile_file, 'module.exports = ' + JSON.stringify(data, null, 2) + ';');
+    this._save_data(data);
   },
 
   // @returns {Array}
@@ -332,10 +397,10 @@ mix(Profile.prototype, {
       fs.mkdir(profile_dir);
     }
 
-    var profile_file = this.profile_file = node_path.join(profile_dir, 'config.js');
+    var profile_file = this.profile_file = node_path.join(profile_dir, 'config');
 
     if (!fs.isFile(profile_file)) {
-      fs.write(profile_file, 'module.exports = {};');
+      fs.write(profile_file, '');
 
     } else {
       this.reload();
@@ -362,34 +427,13 @@ mix(Profile.prototype, {
 
   // Reload properties
   reload: function() {
-    var raw = this._get_data();
+    var raw = this._read_data();
     this.raw_data = raw;
     this.profile.set(raw);
   },
 
   hasConfig: function (key) {
     return key in this.raw_data;
-  },
-
-  _get_data: function() {
-    var data = {};
-    var conf = this.profile_file;
-
-    try {
-      data = require(conf);
-
-    } catch (e) {
-      this.emit('error', {
-        code: 'ERROR_PARSE_CONFIG',
-        message: 'Error parsing config file "' + conf + '".',
-        data: {
-          file: conf,
-          error: e
-        }
-      });
-    }
-
-    return data;
   }
 });
 
