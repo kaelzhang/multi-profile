@@ -39,8 +39,9 @@ function test (err, dir, type) {
             return v
           }
         }
+      },
 
-      }
+      d: {}
     }
   });
 
@@ -82,6 +83,8 @@ function test (err, dir, type) {
   cases.forEach(function (c) {
     assert.deepEqual(c[0], c[1], c[2]);
   });
+
+  return p;
 }
 
 fixture('json').copy(function (err, dir) {
@@ -89,5 +92,9 @@ fixture('json').copy(function (err, dir) {
 });
 
 fixture('ini').copy(function (err, dir) {
-  test(err, dir, 'ini');
+  var p = test(err, dir, 'ini');
+  p.save();
+
+  p.reload();
+  assert(p.get('d') !== 'undefined', '#13, should not save undefined values');
 });

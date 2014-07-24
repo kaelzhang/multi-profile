@@ -63,7 +63,17 @@ var CODEC = {
       return ini.parse(string);
     },
     stringify: function (object) {
-      return ini.stringify(object);
+      var obj = {};
+      var key;
+      // #13
+      // `ini` will save undefined value into the config file
+      // so clean the object before saving.
+      for (key in object) {
+        if (object[key] !== undefined) {
+          obj[key] = object[key];
+        }
+      }
+      return ini.stringify(obj);
     }
   }
 };
